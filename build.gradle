@@ -61,10 +61,18 @@ task buildExe(type: Launch4jLibraryTask, group: 'build', description: 'Build the
     outputDir = exeBuildFolder
     outfile = exeName
     mainClassName = exeMainClassName
-    icon = "../../${exeResourcesDir}/${exeIconFileName}"  // point to the folder within the build resources
+    icon = "${projectDir}/${exeResourcesDir}/${exeIconFileName}"  // point to the folder within the build resources
     headerType = "console"
     companyName = exeCompanyName
-    manifest = "../../${exeResourcesDir}/application.manifest"
+    manifest = "${projectDir}/${exeResourcesDir}/application.manifest"
+}
+
+jar {
+    manifest {
+        attributes(
+            'Main-Class':  exeMainClassName
+        )
+    }
 }
 
 task buildRelease(type: Zip, group: 'build', description: 'Build the release artifact') {

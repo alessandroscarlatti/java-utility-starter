@@ -1,0 +1,109 @@
+import edu.sc.seis.launch4j.tasks.Launch4jLibraryTask
+
+import java.util.stream.Collectors
+
+buildscript {
+    repositories {
+        jcenter()
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath 'edu.sc.seis.gradle:launch4j:2.4.2'
+    }
+}
+
+group 'com.scarlatti'
+
+apply plugin: 'java'
+apply plugin: 'idea'
+apply plugin: 'edu.sc.seis.launch4j'
+
+ext {
+    exeResourcesDir = 'exe'
+    exeBuildFolder = 'exe'
+    exeClasspath = sourceSets.main.runtimeClasspath
+}
+
+generateDefaultProperties()
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+}
+
+task runUtility(type: JavaExec, group: 'application', description: 'Run this utility.') {
+    classpath = exeClasspath
+    main = exeMainClassName
+    args = []
+}
+
+task verifyUtilityMainClass(group: 'verification', description: 'Verify that the expected main class exists.') {
+    doLast {
+        List<URL> urls = sourceSets.main.runtimeClasspath.toList().stream().map({ file -> file.toURI().toURL() }).collect(Collectors.toList())
+        URLClassLoader classLoader = new URLClassLoader((URL[]) urls.toArray())
+        try {
+            Class.forName(exeMainClassName, false, classLoader)
+        } catch (ClassNotFoundException e) {
+            throw new IllegalStateException("Main class does not exist. Was expecting ${exeMainClassName}. Consider defining a main class: ${exeMainClassName}", e)
+        }
+    }
+}
+
+build.dependsOn verifyUtilityMainClass
+
+task buildExe(type: Launch4jLibraryTask, group: 'build', description: 'Build the utility exe') {
+    outputDir = exeBuildFolder
+    outfile = exeName
+    mainClassName = exeMainClassName
+    icon = "../../${exeResourcesDir}/${exeIconFileName}"  // point to the folder within the build resources
+    headerType = "console"
+    companyName = exeCompanyName
+    manifest = "../../${exeResourcesDir}/application.manifest"
+}
+
+task buildRelease(type: Zip, group: 'build', description: 'Build the release artifact') {
+    from files("/build/${exeBuildFolder}")
+    archiveName "CertLoader-${version}.zip"
+    destinationDir(file('/release/bin'))
+}
+
+task checkProperties(group: 'verification', description: 'Prints out project properties for inspection') {
+    doLast {
+        println "version: ${version}"
+        println "exeName: ${exeName}"
+        println "exeCompanyName: ${exeCompanyName}"
+        println "exeMainClassName: ${exeMainClassName}"
+    }
+}
+
+def generateDefaultProperties() {
+    if (!project.hasProperty("exeName") || exeName.trim() == "") {
+        ext {
+            exeName = "${rootProject.name}.exe"
+        }
+    }
+
+    if (!project.hasProperty("exeCompanyName") || exeCompanyName.trim() == "") {
+        ext {
+            exeCompanyName = rootProject.group.toUpperCase().replace('.', "_")
+        }
+    }
+
+    if (!project.hasProperty("exeMainClassName") || exeMainClassName.trim() == "") {
+        ext {
+            exeMainClassName = ''
+        }
+    }
+
+    if (!project.hasProperty("exeIconFileName") || exeIconFileName.trim() == "") {
+        ext {
+            exeIconFileName = 'icon.ico'
+        }
+    }
+}

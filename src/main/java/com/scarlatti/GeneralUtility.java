@@ -12,5 +12,7 @@ import java.util.Arrays;
 public class GeneralUtility {
     public static void main(String[] args) {
         System.out.println("Hello World invoked with args:" + Arrays.asList(args));
+        String str = new String(System.console().readPassword());
+        System.out.println(str);
     }
 }

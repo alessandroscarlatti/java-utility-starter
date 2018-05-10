@@ -89,6 +89,11 @@ task standardDistributionBuildExe(type: Launch4jLibraryTask) {
     outfile = interpretExeName()
     copyright = interpretCopyright()
     fileDescription = findProperty("exeDescription")
+    headerType = findProperty("exeHeaderType")
+    windowTitle = findProperty("productName")
+    supportUrl = findProperty("supportUrl")
+    stayAlive = true
+    errTitle = findProperty("productName")
 }
 
 launch4jHelper.with(standardDistributionBuildExe).configure {

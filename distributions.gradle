@@ -84,7 +84,11 @@ String interpretCopyright() {
 task standardDistributionBuildExe(type: Launch4jLibraryTask) {
     group = 'distribution'
     description = 'Build the distribution archive for this utility.'
-    mainClassName = exeMainClassName
+
+    if (!exeMainClassName.trim().isEmpty()) {
+        mainClassName = exeMainClassName
+    }
+
     productName = findProperty("productName")
     outfile = interpretExeName()
     copyright = interpretCopyright()

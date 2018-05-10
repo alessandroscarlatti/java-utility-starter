@@ -11,7 +11,9 @@ dependencies {
 }
 
 // reconfigure definition "ready-to-build-distribution" for Spring Boot 1.x
-// jar.enabled = false
 // tasks.standardDistributionBuildExe.dependsOn(bootRepackage)
+// tasks.standardDistributionBuildExe.mustRunAfter(bootRepackage)
+
 // or for Spring Boot 2.x
+// jar.enabled = false
 // tasks.standardDistributionBuildExe.dependsOn(bootJar)

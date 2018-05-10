@@ -1,84 +1,11 @@
-import java.util.stream.Collectors
-import edu.sc.seis.launch4j.tasks.Launch4jLibraryTask
-import java.nio.file.Paths
-
-buildscript {
-    repositories {
-        jcenter()
-        flatDir dirs: Paths.get(project.projectDir.absolutePath, 'libs').toString()
-    }
-
-    dependencies {
-        classpath 'edu.sc.seis.gradle:launch4j:2.4.2'
-        classpath "com.scarlatti:utility-distribution:+"
-    }
-}
-
-group 'com.scarlatti'
-
 apply plugin: 'java'
 apply plugin: 'idea'
-
-ext {
-    exeClasspath = sourceSets.main.runtimeClasspath
-    exeMainClassName = 'com.scarlatti.GeneralUtility'
-}
+apply from: 'distributions.gradle'
 
 sourceCompatibility = 1.8
 
-repositories {
-    mavenCentral()
-}
+repositories.mavenCentral()
 
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
 }
-
-/**
- * Run this utility as if from the exe.
- */
-task runUtility(type: JavaExec, group: 'application', description: 'Run this utility.') {
-    classpath = exeClasspath
-    main = exeMainClassName
-    args = []
-}
-
-/**
- * Verify that the main class is available in the classpath.
- */
-task verifyUtilityMainClass(group: 'verification', description: 'Verify that the expected main class exists.') {
-    doLast {
-        List<URL> urls = sourceSets.main.runtimeClasspath.toList().stream().map({ file -> file.toURI().toURL() }).collect(Collectors.toList())
-        URLClassLoader classLoader = new URLClassLoader((URL[]) urls.toArray())
-        try {
-            Class.forName(exeMainClassName, false, classLoader)
-        } catch (ClassNotFoundException e) {
-            throw new IllegalStateException("Main class does not exist. Was expecting ${exeMainClassName}. Consider defining a main class: ${exeMainClassName}", e)
-        }
-    }
-}
-build.dependsOn verifyUtilityMainClass
-
-apply plugin: 'distribution'
-apply plugin: 'launch4j'
-apply plugin: 'distribution-utils'
-
-distributions {
-    main {
-        baseName = "standard"
-    }
-}
-
-task utilityDistribution(type: Launch4jLibraryTask) {
-    group = 'utility distribution'
-    description = 'Build the distribution archive for this utility.'
-    mainClassName = exeMainClassName
-    productName = 'Hello World Utility'
-}
-
-launch4jHelper.with(utilityDistribution).configure {
-    resourcesDir = 'distributionResources'
-    outputDir = 'launch4j/standardDistribution'
-}
-
-distributionHelper.configure(distributions.main).from(utilityDistribution)

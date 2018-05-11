@@ -115,8 +115,11 @@ task standardDistributionExe(type: Copy) {
 
 task standardDistributionZip(type: Zip) {
     group = 'distribution'
-    description = 'Put the standalone exe zip in the distribution dir.'
-    from file("${project.buildDir}/${standardDistributionBuildExe.outputDir}/${standardDistributionBuildExe.outfile}")
+    description = 'Put the standalone exe zip, along with companion resources in the distribution dir.'
+    from "${project.buildDir}/${standardDistributionBuildExe.outputDir}/${standardDistributionBuildExe.outfile}"
+    from("distributionResources/standard/companion") {
+        into "/"
+    }
     archiveName = interpretArchiveName()
     destinationDir = file("${project.buildDir}/distributions/standard")
 }
